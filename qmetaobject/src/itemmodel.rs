@@ -50,6 +50,11 @@ pub trait QAbstractItemModel: QObject {
     /// Refer to the Qt documentation of QAbstractItemModel::data
     fn data(&self, index: QModelIndex, role: i32) -> QVariant;
 
+    /// Refer to the Qt documentation of QAbstractItemModel::headerData
+    fn header_data(&self, _section: i32, _orientation: Orientation, _role: i32) -> QVariant {
+        QVariant::default()
+    }
+
     /// Refer to the Qt documentation of QAbstractItemModel::setData
     fn set_data(&mut self, _index: QModelIndex, _value: &QVariant, _role: i32) -> bool {
         false
@@ -171,6 +176,16 @@ pub trait QAbstractItemModel: QObject {
         })
     }
 
+    /// Refer to the Qt documentation of QAbstractItemModel::headerDataChanged
+    fn header_data_changed(&mut self, orientation: Orientation, first: i32, last: i32) {
+        let obj = self.get_cpp_object();
+        unsafe {
+            cpp!([obj as "Rust_QAbstractItemModel*", orientation as "Qt::Orientation", first as "int", last as "int"] {
+                if(obj) obj->headerDataChanged(orientation, first, last);
+            })
+        }
+    }
+
     /// Refer to the Qt documentation of QAbstractItemModel::createIndex
     fn create_index(&self, row: i32, column: i32, id: usize) -> QModelIndex {
         let obj = self.get_cpp_object();
@@ -248,6 +263,12 @@ cpp! {{
                 role: i32 as "int"
             ] -> QVariant as "QVariant" {
                 rust_object.borrow().data(index, role)
+            });
+        }
+
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override {
+            return rust!(Rust_QAbstractItemModel_headerData[rust_object : QObjectPinned<dyn QAbstractItemModel> as "TraitObject", section : i32 as "int", orientation: Orientation as "Qt::Orientation", role : i32 as "int"] -> QVariant as "QVariant" {
+                rust_object.borrow().header_data(section, orientation, role)
             });
         }
 

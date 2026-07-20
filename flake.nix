@@ -28,7 +28,7 @@
           wrapQtAppsHook
         ];
       in
-        {
+      {
         devShells.default = pkgs.mkShell rec {
           nativeBuildInputs = with pkgs; [
             pkg-config

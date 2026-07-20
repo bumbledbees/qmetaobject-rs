@@ -1850,6 +1850,16 @@ impl From<Vec<QJsonValue>> for QJsonArray {
     }
 }
 
+#[repr(C)]
+#[derive(Clone, Copy, PartialEq, Debug)]
+/// Wrapper around [`Qt::Orientation`][enum] enum.
+///
+/// [enum]: https://doc.qt.io/qt-6/qt.html#Orientation-enum
+pub enum Orientation {
+    Horizontal = 1,
+    Vertical = 2,
+}
+
 #[test]
 fn test_qjsonarray() {
     let mut array = QJsonArray::default();

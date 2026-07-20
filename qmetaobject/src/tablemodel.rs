@@ -21,6 +21,10 @@ pub trait QAbstractTableModel: QObject {
     fn column_count(&self) -> i32;
     /// Refer to the Qt documentation of QAbstractTableModel::data
     fn data(&self, index: QModelIndex, role: i32) -> QVariant;
+    /// Refer to the Qt documentation of QAbstractItemModel::headerData
+    fn header_data(&self, _section: i32, _orientation: Orientation, _role: i32) -> QVariant {
+        QVariant::default()
+    }
     /// Refer to the Qt documentation of QAbstractTableModel::setData
     fn set_data(&mut self, _index: QModelIndex, _value: &QVariant, _role: i32) -> bool {
         false
@@ -133,6 +137,15 @@ pub trait QAbstractTableModel: QObject {
             })
         }
     }
+    /// Refer to the Qt documentation of QAbstractItemModel::headerDataChanged
+    fn header_data_changed(&mut self, orientation: Orientation, first: i32, last: i32) {
+        let obj = self.get_cpp_object();
+        unsafe {
+            cpp!([obj as "Rust_QAbstractTableModel*", orientation as "Qt::Orientation", first as "int", last as "int"] {
+                if(obj) obj->headerDataChanged(orientation, first, last);
+            })
+        }
+    }
     /// Returns a QModelIndex for the given row and column
     fn index(&self, row: i32, col: i32) -> QModelIndex {
         let obj = self.get_cpp_object();
@@ -192,7 +205,11 @@ cpp! {{
 
         //Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-        //QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override {
+            return rust!(Rust_QAbstractTableModel_headerData[rust_object : QObjectPinned<dyn QAbstractTableModel> as "TraitObject", section : i32 as "int", orientation: Orientation as "Qt::Orientation", role : i32 as "int"] -> QVariant as "QVariant" {
+                rust_object.borrow().header_data(section, orientation, role)
+            });
+        }
 
         QHash<int, QByteArray> roleNames() const override {
             QHash<int, QByteArray> base = QAbstractTableModel::roleNames();

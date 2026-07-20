@@ -42,6 +42,10 @@ pub trait QAbstractListModel: QObject {
     fn row_count(&self) -> i32;
     /// Refer to the Qt documentation of QAbstractListModel::data
     fn data(&self, index: QModelIndex, role: i32) -> QVariant;
+    /// Refer to the Qt documentation of QAbstractItemModel::headerData
+    fn header_data(&self, _section: i32, _orientation: Orientation, _role: i32) -> QVariant {
+        QVariant::default()
+    }
     /// Refer to the Qt documentation of QAbstractListModel::setData
     fn set_data(&mut self, _index: QModelIndex, _value: &QVariant, _role: i32) -> bool {
         false
@@ -145,6 +149,16 @@ pub trait QAbstractListModel: QObject {
         }
     }
 
+    /// Refer to the Qt documentation of QAbstractItemModel::headerDataChanged
+    fn header_data_changed(&mut self, orientation: Orientation, first: i32, last: i32) {
+        let obj = self.get_cpp_object();
+        unsafe {
+            cpp!([obj as "Rust_QAbstractListModel*", orientation as "Qt::Orientation", first as "int", last as "int"] {
+                if(obj) obj->headerDataChanged(orientation, first, last);
+            })
+        }
+    }
+
     /// Returns a QModelIndex for the given row (in the first column)
     fn row_index(&self, i: i32) -> QModelIndex {
         let obj = self.get_cpp_object();
@@ -197,7 +211,11 @@ cpp! {{
 
         //Qt::ItemFlags flags(const QModelIndex &index) const override;
 
-        //QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+        QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override {
+            return rust!(Rust_QAbstractListModel_headerData[rust_object : QObjectPinned<dyn QAbstractListModel> as "TraitObject", section : i32 as "int", orientation: Orientation as "Qt::Orientation", role : i32 as "int"] -> QVariant as "QVariant" {
+                rust_object.borrow().header_data(section, orientation, role)
+            });
+        }
 
         QHash<int, QByteArray> roleNames() const override {
             QHash<int, QByteArray> base = QAbstractListModel::roleNames();
@@ -227,7 +245,7 @@ pub trait SimpleListItem {
     fn names() -> Vec<QByteArray>;
 }
 
-/// A simple QAbstractListModel which just wrap a vector of items.
+/// A simple QAbstractListModel which just wraps a vector of items.
 #[derive(QObject, Default)]
 // This is a bit weird because the rules are different as we are in the qmetaobject crate
 #[QMetaObjectCrate = "super"]
@@ -252,6 +270,9 @@ where
         } else {
             QVariant::default()
         }
+    }
+    fn header_data(&self, _section: i32, _orientation: Orientation, _role: i32) -> QVariant {
+        QVariant::default()
     }
     fn role_names(&self) -> HashMap<i32, QByteArray> {
         T::names().iter().enumerate().map(|(i, x)| (i as i32 + USER_ROLE, x.clone())).collect()
