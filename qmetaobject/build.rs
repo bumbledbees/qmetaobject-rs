@@ -31,6 +31,9 @@ fn main() {
     }
     config.include(&qt_include_path).build("src/lib.rs");
 
+    // Ensure cpp_build is re-ran if contents of a cpp! macro are changed
+    println!("cargo:rerun-if-changed=src");
+
     let versions = [
         // Qt 5.7 .. Qt 5.15
         (5, (7..=15)),
