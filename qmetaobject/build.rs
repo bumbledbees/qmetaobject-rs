@@ -31,6 +31,16 @@ fn main() {
     }
     config.include(&qt_include_path).build("src/lib.rs");
 
+    // Make `links` metadata exported by qttypes's build script available to the library
+    let vars: [&str; 4] = [
+        "QT_VERSION", "QT_LIBRARY_PATH", "QT_INCLUDE_PATH", "QT_COMPILE_FLAGS"
+    ];
+    for var in vars {
+        if let Ok(val) = std::env::var(format!("DEP_{}", var)) {
+            println!("cargo:rustc-env={}={}", var, val);
+        }
+    }
+
     // Ensure cpp_build is re-ran if contents of a cpp! macro are changed
     println!("cargo:rerun-if-changed=src");
 

@@ -181,6 +181,7 @@ use cpp::{cpp, cpp_class};
 
 pub use qttypes;
 
+pub use build_info::*;
 pub use crate::log::*;
 pub use connections::RustSignal;
 pub use connections::{connect, Signal, SignalInner};
@@ -194,6 +195,7 @@ pub use qtquickcontrols2::*;
 pub use qttypes::*;
 pub use tablemodel::*;
 
+pub mod build_info;
 pub mod connections;
 pub mod future;
 pub mod itemmodel;
